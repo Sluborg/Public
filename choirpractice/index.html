@@ -271,6 +271,11 @@ details.mixer[open] summary::after{content:"–"}
   <p class="hint" id="lyrWho"></p>
   <textarea id="songText" rows="10" placeholder="Klistra in eller skriv sångtexten här."></textarea>
   <p class="hint">Det du skriver här sparas på den här telefonen. Fel stavelse under stämlinjen? Tryck på den för att rätta.</p>
+  <details style="margin-top:10px"><summary class="hint" style="cursor:pointer">Flytta mina texter till en annan telefon eller app</summary>
+    <div class="row" style="margin-top:8px"><button class="btn" type="button" id="xOut">Gör kod av mina texter</button><button class="btn" type="button" id="xIn">Importera koden i rutan</button></div>
+    <textarea id="xfer" rows="4" placeholder="Koden visas här. Klistra in en kod här för att importera." style="width:100%;margin-top:8px;font-family:var(--f-mono);font-size:12px"></textarea>
+    <p class="hint" id="xMsg"></p>
+  </details>
 </section>
 
 <section class="sheetx" id="lyrEdit" hidden aria-label="Rätta text">
@@ -308,7 +313,7 @@ details.mixer[open] summary::after{content:"–"}
   </details>
   <button class="btn" id="toStart" hidden>Till början</button>
   <p class="hint" id="sheetTitle" hidden></p>
-  <p class="hint">Norsesundskören · stämövning · lite v28</p>
+  <p class="hint">Norsesundskören · stämövning · lite v29</p>
 </section>
 
 <input id="file" type="file" multiple class="sr" tabindex="-1" aria-hidden="true">
@@ -1565,10 +1570,38 @@ function initCaps(){
   claude.use('sample').then(s => { sampleFn = s; $('#lyrBtn').hidden = !s; if (S.song && S.score) renderLyricsUI(); }).catch(() => {});
 }
 
+/* ================= v29: central texts (library/texter.json) + move texts between apps ================= */
+$('#xOut').onclick = async () => {
+  const out = {}, names = new Map([...S.builtins, ...S.songs, DEMO].map(s => [s.id, s.title]));
+  for (let i = 0; i < localStorage.length; i++){
+    const k = localStorage.key(i); if (!k || !k.startsWith('stamovning:song3:')) continue;
+    const id = k.slice(17); let v; try{ v = JSON.parse(localStorage.getItem(k)); }catch(e){ continue; }
+    if (!v || (!v.text && !(v.lyr && Object.keys(v.lyr).length))) continue;
+    out[id] = { title: names.get(id) || id, lyr: v.lyr || undefined, text: v.text || undefined };
+  }
+  const code = JSON.stringify({ stamovning: 1, songs: out }), box = $('#xfer'); box.value = code; box.select();
+  let copied = false; try{ await navigator.clipboard.writeText(code); copied = true; }catch(e){}
+  $('#xMsg').textContent = Object.keys(out).length ? `${Object.keys(out).length} sånger med text. ${copied ? 'Koden är kopierad.' : 'Markera och kopiera koden i rutan.'}` : 'Hittade ingen sparad text på den här telefonen.';
+};
+$('#xIn').onclick = () => {
+  let d; try{ d = JSON.parse($('#xfer').value.trim()); }catch(e){ $('#xMsg').textContent = 'Koden kunde inte läsas. Kopiera hela koden.'; return; }
+  if (!d || !d.songs){ $('#xMsg').textContent = 'Det där är ingen kod från appen.'; return; }
+  let n = 0;
+  Object.entries(d.songs).forEach(([id, v]) => {
+    const cur = LS.get('song3:' + id, {});
+    if (v.lyr) cur.lyr = Object.assign(cur.lyr || {}, v.lyr);
+    if (v.text) cur.text = v.text;
+    LS.set('song3:' + id, cur); n++;
+    if (S.song && S.song.id === id){ if (v.lyr) S.set.lyr = Object.assign(S.set.lyr || {}, v.lyr); if (v.text) S.set.text = v.text; }
+  });
+  $('#xMsg').textContent = `${n} sånger importerade.`; renderLyricsUI(); drawLane._last = null; drawLane(S.position);
+};
+
 (async function init(){
   await DB.open();
   S.songs = (await DB.all()).sort((a, b) => a.added - b.added);
   try{ const r = await fetch('library/library.json'); if (r.ok) S.builtins = await r.json(); }catch(e){}
+  try{ const r = await fetch('library/texter.json?v=' + Date.now()); if (r.ok){ const tx = await r.json(); S.builtins.forEach(s => { const x = tx[s.id]; if (!x) return; if (x.lyrics) s.lyrics = x.lyrics; if (x.text) s.text = x.text; }); } }catch(e){}
   const last = [...S.builtins, ...S.songs].find(s => s.id === G.last);
   await loadSong(last || DEMO);
   initCaps();
