@@ -313,7 +313,7 @@ details.mixer[open] summary::after{content:"–"}
   </details>
   <button class="btn" id="toStart" hidden>Till början</button>
   <p class="hint" id="sheetTitle" hidden></p>
-  <p class="hint">Norsesundskören · stämövning · lite v29</p>
+  <p class="hint">Norsesundskören · stämövning · lite v30</p>
 </section>
 
 <input id="file" type="file" multiple class="sr" tabindex="-1" aria-hidden="true">
@@ -1601,7 +1601,7 @@ $('#xIn').onclick = () => {
   await DB.open();
   S.songs = (await DB.all()).sort((a, b) => a.added - b.added);
   try{ const r = await fetch('library/library.json'); if (r.ok) S.builtins = await r.json(); }catch(e){}
-  try{ const r = await fetch('library/texter.json?v=' + Date.now()); if (r.ok){ const tx = await r.json(); S.builtins.forEach(s => { const x = tx[s.id]; if (!x) return; if (x.lyrics) s.lyrics = x.lyrics; if (x.text) s.text = x.text; }); } }catch(e){}
+  try{ const r = await fetch('library/texter.json?v=' + Date.now()); if (r.ok){ const tx = await r.json(); [DEMO, ...S.builtins].forEach(s => { const x = tx[s.id]; if (!x) return; if (x.lyrics) s.lyrics = x.lyrics; if (x.text) s.text = x.text; }); } }catch(e){}
   const last = [...S.builtins, ...S.songs].find(s => s.id === G.last);
   await loadSong(last || DEMO);
   initCaps();
