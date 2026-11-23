@@ -115,7 +115,6 @@ input.sw:checked{background:var(--accent)} input.sw:checked::after{left:21px}
 .step button{width:46px;height:46px;border-radius:10px;border:1px solid var(--line);background:var(--surface-2);font-size:22px}
 .num{width:64px;text-align:center;font-family:var(--f-mono);font-size:18px;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:9px 2px}
 
-.seg.inst{display:none!important}
 .phead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px}
 .duo{display:grid;grid-template-columns:1fr;gap:10px}
 .singer{border-radius:10px;padding:10px 12px;background:var(--surface-2);display:flex;flex-direction:column;gap:8px;min-width:0;border-left:4px solid var(--c)}
@@ -158,6 +157,8 @@ details.mixer[open] summary::after{content:"–"}
 .countdown{position:fixed;left:50%;top:42%;transform:translate(-50%,-50%);z-index:40;width:140px;height:140px;border-radius:50%;display:grid;place-items:center;
   background:var(--accent);color:var(--accent-fg);font-family:var(--f-display);font-weight:700;font-size:84px;line-height:1;pointer-events:none;box-shadow:0 10px 40px rgba(0,0,0,.25)}
 @media (prefers-reduced-motion: reduce){*{scroll-behavior:auto!important;animation:none!important}}
+.seg.inst{display:none!important}
+#driveBtn{display:none!important}
 </style>
 
 <div class="app">
@@ -307,7 +308,7 @@ details.mixer[open] summary::after{content:"–"}
   </details>
   <button class="btn" id="toStart" hidden>Till början</button>
   <p class="hint" id="sheetTitle" hidden></p>
-  <p class="hint">Norsesundskören · stämövning · lite v27</p>
+  <p class="hint">Norsesundskören · stämövning · lite v28</p>
 </section>
 
 <input id="file" type="file" multiple class="sr" tabindex="-1" aria-hidden="true">
@@ -1438,7 +1439,7 @@ renderLyricsUI = function(){
   if (ly && ly.length > 1) ly.forEach((_, i) => { const b = document.createElement('button'); b.textContent = 'V' + (i + 1); b.setAttribute('aria-pressed', (S.set.verse || 0) === i ? 'true' : 'false');
     b.onclick = () => { S.set.verse = i; saveSong(); renderLyricsUI(); drawLane(S.position); }; seg.appendChild(b); });
   const own = S.set.lyr && S.set.lyr[act().find(Boolean)];
-  $('#songText').value = own ? lyricsAsText(own).replace(/ ?_/g, '') : (S.set.text ?? (S.song.text || (ly ? lyricsAsText(ly) : '')));
+  $('#songText').value = S.set.text ?? (own ? lyricsAsText(own).replace(/ ?_/g, '') : (S.song.text || (ly ? lyricsAsText(ly) : '')));
   $('#lyrBtn').textContent = own ? 'Läs om texten' : 'Läs texten från noterna';
   const id = act().find(Boolean), tr = S.score.tracks.find(t => t.id === id);
   $('#lyrWho').textContent = tr && sampleFn ? `Texten läses för stämman ${S.set.names[id] || tr.name} och visas under stämlinjen. Det använder din Claude-användning.` : '';
@@ -1495,7 +1496,7 @@ Reply with ONLY JSON in this shape: {"bars":[{"bar":${bars[0].bar},"verses":[["s
     }
     const out = verses.filter(v => v && v.length);
     if (!out.length){ st.textContent = 'Hittade ingen text för den här stämman.'; }
-    else { (S.set.lyr ||= {})[id] = out; delete S.set.text; saveSong(); st.textContent = `Klart: ${got} stavelser inlästa för ${name}.`;
+    else { (S.set.lyr ||= {})[id] = out; saveSong(); st.textContent = `Klart: ${got} stavelser inlästa för ${name}.`;
       setTimeout(() => { closeSheets(); toast('Texten visas nu under stämlinjen. Tryck spela.'); }, 900); }
   }catch(e){
     st.textContent = e && e.code === 'cancelled' ? 'Avbrutet.' : e && e.code === 'not_granted' ? 'Du tillät inte Claude, så ingen text lästes.' : e && e.code === 'rate_limited' ? 'För många frågor just nu. Försök igen om en stund.' : 'Det gick inte att läsa texten: ' + ((e && e.message) || e);
@@ -1519,7 +1520,7 @@ function leCommit(fn){ // copy to own lyrics on first change, then mutate this v
   S.set.lyr ||= {}; if (!S.set.lyr[id]) S.set.lyr[id] = JSON.parse(JSON.stringify(lv.cur));
   const own = S.set.lyr[id]; own[lv.v] ||= []; fn(own[lv.v]);
   own[lv.v].sort((a, b) => a[0] - b[0] || a[1] - b[1]);
-  delete S.set.text; saveSong(); renderLyricsUI(); drawLane._last = null; drawLane(S.position);
+  saveSong(); renderLyricsUI(); drawLane._last = null; drawLane(S.position);
 }
 function leMake(i, text){ const st = LE.starts[i], bi = measureAt(st); return [bi + 1, +(st - S.score.measureStarts[bi]).toFixed(3), text]; }
 function leShow(){
