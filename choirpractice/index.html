@@ -228,7 +228,7 @@ details.mixer[open] summary::after{content:"–"}
     <button class="btn primary" type="button" data-pick="file">+ Lägg till sång från telefonen</button>
     <button class="btn" type="button" id="driveBtn" hidden>Drive</button>
   </div>
-  <p class="hint" id="libHint">Välj alla stämfiler (.playscore, .mxl eller MusicXML) för en sång på en gång, så blir de en sång. Nya sånger till körens lista lägger Stefan in.</p>
+  <p class="hint" id="libHint">Välj alla stämfiler (.playscore, .mxl eller MusicXML) för en sång på en gång, så blir de en sång. Du kan ta med en PDF med noterna också. Nya sånger till körens lista lägger Stefan in.</p>
   <div id="driveBox" hidden></div>
   <div class="songlist" id="songList"></div>
 </section>
@@ -313,7 +313,7 @@ details.mixer[open] summary::after{content:"–"}
   </details>
   <button class="btn" id="toStart" hidden>Till början</button>
   <p class="hint" id="sheetTitle" hidden></p>
-  <p class="hint">Norsesundskören · stämövning · lite v32</p>
+  <p class="hint">Norsesundskören · stämövning · lite v33</p>
 </section>
 
 <input id="file" type="file" multiple class="sr" tabindex="-1" aria-hidden="true">
@@ -486,6 +486,7 @@ function parseMusicXML(text){
     return { part: p, staff: 1, notes, piano: true, avg: notes.reduce((s,n)=>s+n.midi,0)/notes.length };
   });
   voices = groups.filter(g => !pianoParts.includes(g.part));
+  { const mx = Math.max(0, ...voices.map(g => g.notes.length)); voices = voices.filter(g => g.notes.length >= Math.max(6, mx * 0.05)); } // drop stray OCR parts (tempo marks etc.)
   voices.sort((a,b)=>b.avg-a.avg);
   const generic = s => !s || /^(part|stämma|staff|music|instrument)\s*\d+$/i.test(s) || /^(part|staff|music|instrument)$/i.test(s) || /^P\d+$/.test(s);
   const SATB = ['Sopran','Alt','Tenor','Bas'];
@@ -579,7 +580,7 @@ const N_FLAT  = ['C','Dess','D','Ess','E','F','Gess','G','Ass','A','B','H'];
 const noteName = m => (S.score && S.score.fifths < 0 ? N_FLAT : N_SHARP)[((m%12)+12)%12];
 
 /* ---------- state ---------- */
-const G = Object.assign({ names:['Stefan','Elin'], count:2, bg:false, split:false, countIn:true, lift:false, timbre:'piano', layout:'row', staves:'mine', last:null }, LS.get('global2', {}));
+const G = Object.assign({ names:['Person 1','Person 2'], count:2, bg:false, split:false, countIn:true, lift:false, timbre:'piano', layout:'row', staves:'mine', last:null }, LS.get('global2', {}));
 const S = { builtins:[], songs:[], song:null, score:null, set:null, playing:false, position:0 };
 const saveGlobal = () => LS.set('global2', G);
 const act = () => S.set.singers.slice(0, G.count);
@@ -1201,8 +1202,9 @@ function commonTitle(names){
   return p.trim().replace(/[-_,]+$/,'').trim() || strip(names[0]) || names[0];
 }
 async function readAll(files){
-  const out = [];
+  const out = [], pdfs = files.filter(f => /\.pdf$/i.test(f.name)); files = files.filter(f => !/\.pdf$/i.test(f.name));
   for (const f of files){ try{ out.push(await readSource(f)); }catch(err){ toast(`${f.name}: ${err.message || err}`); await new Promise(r=>setTimeout(r,1800)); } }
+  if (pdfs.length){ try{ let ph = []; for (const f of pdfs) ph = ph.concat(await pdfToPhotos(new Uint8Array(await f.arrayBuffer()))); out.pdf = ph; if (out.length && ph.length) out[0].photos = ph; }catch(err){ toast('PDF:en kunde inte läsas: ' + (err.message || err)); } }
   return out;
 }
 async function saveSongRec(song){ const ok = await DB.put(song); if (!ok) toast('Sången öppnades men kunde inte sparas på den här enheten.'); }
@@ -1213,21 +1215,22 @@ $('#file').onchange = async e => {
   const files = [...e.target.files]; e.target.value = '';
   if (!files.length){ toast('Inga filer valdes.'); return; }
   toast(`Läser ${files.length} fil${files.length>1?'er':''}…`);
-  const srcs = await readAll(files); if (!srcs.length) return;
+  const srcs = await readAll(files); if (!srcs.length){ if ((srcs.pdf || []).length) toast('Välj stämfilen (.playscore eller .mxl) tillsammans med PDF:en.'); return; }
   await addSong(srcs);
 };
 $('#addFile').onchange = async e => {
   const files = [...e.target.files]; e.target.value = '';
   if (!files.length){ toast('Inga filer valdes.'); return; }
   toast(`Läser ${files.length} fil${files.length>1?'er':''}…`);
-  const srcs = await readAll(files); if (!srcs.length || !S.song) return;
+  const srcs = await readAll(files); if (!S.song || (!srcs.length && !(srcs.pdf || []).length)) return;
   let song = S.song;
-  const cur = song.sources || [{ name: song.title, xml: song.xml, photo: song.photo, tempo: song.tempo }];
+  const cur = [...(song.sources || [{ name: song.title, xml: song.xml, photo: song.photo, tempo: song.tempo }])];
+  if (!srcs.length) cur[0] = { ...cur[0], photos: srcs.pdf, photo: undefined };
   if (song.builtin){ song = { id: 's' + Date.now(), title: commonTitle([...cur, ...srcs].map(s=>s.name)), sources: [...cur, ...srcs], added: Date.now() }; S.songs.push(song); }
   else { song.sources = [...cur, ...srcs]; delete song.xml; delete song.photo; }
   await saveSongRec(song);
   await loadSong(song);
-  toast(`La till ${srcs.length} stämfil${srcs.length>1?'er':''} i ${song.title}.`);
+  toast(srcs.length ? `La till ${srcs.length} stämfil${srcs.length>1?'er':''} i ${song.title}.` : `La till noterna (PDF) i ${song.title}.`);
 };
 $('#libBtn').onclick = () => toggleLib();
 document.querySelectorAll('#countSeg button').forEach(b => b.onclick = () => { G.count = +b.dataset.n; saveGlobal(); resetPlay(); saveSong(); renderDuo(); renderTracks(); applyMix(); drawLane._last = null; drawLane(S.position); if (G.staves === 'mine') rerenderScore(); });
