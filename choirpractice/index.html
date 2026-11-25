@@ -90,6 +90,11 @@ button{cursor:pointer;-webkit-tap-highlight-color:transparent}
 .tempoGrp .tv small{display:block;font-family:var(--f-body);font-size:10px;color:var(--muted)}
 .quick{display:flex;gap:8px}
 .pos{overflow:hidden}
+.quick,.tp{--qgap:8px}
+.nav{flex:1;min-width:0;display:flex;align-items:center;justify-content:center;gap:2px}
+.nav .pos{flex:0 1 64px}
+.tempoGrp{width:calc((100% - 2 * var(--qgap)) / 3);box-sizing:border-box}
+.tempoGrp button{flex:1}.tempoGrp .tv{flex:none}
 .pos #barTot{font-size:12px;color:var(--muted)}
 @media (max-width:430px){
   .tp{gap:6px}
@@ -97,7 +102,7 @@ button{cursor:pointer;-webkit-tap-highlight-color:transparent}
   .tp .iconbtn{width:38px}
   .pos b{font-size:19px}.pos #barTot{font-size:11px}
   .tempoGrp button{width:30px}.tempoGrp .tv{min-width:36px}
-  .quick{gap:6px}.quick .btn{padding:9px 6px;font-size:14px}
+  .quick{gap:6px}.quick,.tp{--qgap:6px}.quick .btn{padding:9px 6px;font-size:14px}
 }
 @media (max-width:360px){.pos small{font-size:9px}.tempoGrp button{width:27px}.tp .iconbtn{width:34px}}
 .btn{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:9px 12px;font-weight:500;display:inline-flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap;min-height:40px}
@@ -208,6 +213,7 @@ details.mixer[open] summary::after{content:"–"}
       <button class="play" id="playBtn" aria-label="Spela">
         <svg id="playIco" viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5v15l13-7.5z"/></svg>
       </button>
+      <div class="nav">
       <button class="iconbtn" id="barBack" aria-label="En takt bakåt">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg>
       </button>
@@ -215,6 +221,7 @@ details.mixer[open] summary::after{content:"–"}
       <button class="iconbtn" id="barFwd" aria-label="En takt framåt">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg>
       </button>
+      </div>
       <div class="tempoGrp" role="group" aria-label="Tempo">
         <button id="tDown" aria-label="Långsammare">−</button>
         <span class="tv"><span id="tempoVal">80</span><small>tempo</small></span>
@@ -333,7 +340,7 @@ details.mixer[open] summary::after{content:"–"}
   </details>
   <button class="btn" id="toStart" hidden>Till början</button>
   <p class="hint" id="sheetTitle" hidden></p>
-  <p class="hint">Norsesundskören · stämövning · lite v46</p>
+  <p class="hint">Norsesundskören · stämövning · lite v47</p>
 </section>
 
 <input id="file" type="file" multiple class="sr" tabindex="-1" aria-hidden="true">
