@@ -313,7 +313,7 @@ details.mixer[open] summary::after{content:"–"}
   </details>
   <button class="btn" id="toStart" hidden>Till början</button>
   <p class="hint" id="sheetTitle" hidden></p>
-  <p class="hint">Norsesundskören · stämövning · lite v36</p>
+  <p class="hint">Norsesundskören · stämövning · lite v37</p>
 </section>
 
 <input id="file" type="file" multiple class="sr" tabindex="-1" aria-hidden="true">
@@ -473,7 +473,14 @@ function parseMusicXML(text){
       to.notes.sort((a,b)=>a.start-b.start);
     };
     fix(lo, up, false); fix(up, lo, true);
-    [up, lo].forEach(g => g.avg = avg(g));
+    // a second voice that only exists in the divisi bars: the upper line also sings the shared bars (like Bas 1 / Bas 2)
+    let filled = false;
+    if (up.notes.length < 0.6 * lo.notes.length){
+      filled = true;
+      const iv = up.notes.map(n => [n.start, n.start + n.dur]);
+      up.notes = [...up.notes, ...lo.notes.filter(n => !iv.some(([x, y]) => n.start >= x - 1e-3 && n.start < y - 1e-3)).map(n => ({ ...n }))].sort((x, y) => x.start - y.start);
+    }
+    if (!filled) [up, lo].forEach(g => g.avg = avg(g)); // keep the upper line first after filling
   });
   // piano / accompaniment: a part with two or more staves in a multi-part score becomes one "Piano" track
   const partStaves = {};
