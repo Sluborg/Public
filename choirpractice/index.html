@@ -309,6 +309,7 @@ details.mixer[open] summary::after{content:"–"}
   <div class="sh"><h2>Inställningar</h2><button class="iconbtn" data-close aria-label="Stäng">✕</button></div>
   <label class="trow"><span>Inräkning<small>En takt med klick och nedräkning före start.</small></span><input class="sw" type="checkbox" id="countIn"></label>
   <div class="trow"><span>Klang</span><div class="seg" role="group" aria-label="Klang" id="timbreSeg"><button data-timbre="piano">Piano</button><button data-timbre="organ">Orgel</button></div></div>
+  <label class="trow"><span>Långa stämnamn<small>Sopran 1 i stället för S1, Alt i stället för A.</small></span><input class="sw" type="checkbox" id="longNames"></label>
   <label class="trow"><span>Låga toner en oktav upp<small>Om basen hörs dåligt i telefonens högtalare.</small></span><input class="sw" type="checkbox" id="lift"></label>
   <div class="trow"><span>Noterna visas som</span><div class="seg" role="group" aria-label="Notlayout" id="layoutSeg"><button data-layout="row">Rad</button><button data-layout="page">Sida</button></div></div>
   <div class="trow"><span>Notrader</span><div class="seg" role="group" aria-label="Stämmor i noterna" id="staffSeg"><button data-staff="mine">Mina</button><button data-staff="all">Alla</button></div></div>
@@ -321,7 +322,7 @@ details.mixer[open] summary::after{content:"–"}
   </details>
   <button class="btn" id="toStart" hidden>Till början</button>
   <p class="hint" id="sheetTitle" hidden></p>
-  <p class="hint">Norsesundskören · stämövning · lite v41</p>
+  <p class="hint">Norsesundskören · stämövning · lite v42</p>
 </section>
 
 <input id="file" type="file" multiple class="sr" tabindex="-1" aria-hidden="true">
@@ -601,6 +602,8 @@ const N_FLAT  = ['C','Dess','D','Ess','E','F','Gess','G','Ass','A','B','H'];
 const noteName = m => (S.score && S.score.fifths < 0 ? N_FLAT : N_SHARP)[((m%12)+12)%12];
 
 /* ---------- state ---------- */
+const SHORTV = { 'Sopran':'S', 'Alt':'A', 'Tenor':'T', 'Bas':'B' };
+function dn(n){ if (!n || G.longNames) return n; const m = /^(Sopran|Alt|Tenor|Bas)(?: (\d))?$/.exec(n); return m ? SHORTV[m[1]] + (m[2] || '') : n; }
 const G = Object.assign({ names:['Person 1','Person 2'], count:2, bg:false, split:false, countIn:true, lift:false, timbre:'piano', layout:'row', staves:'mine', last:null }, LS.get('global2', {}));
 const S = { builtins:[], songs:[], song:null, score:null, set:null, playing:false, position:0 };
 const saveGlobal = () => LS.set('global2', G);
@@ -1049,7 +1052,7 @@ function renderDuo(){
   const sc = S.score, box = $('#duo'); box.innerHTML = '';
   box.classList.toggle('one', G.count === 1);
   document.querySelectorAll('#countSeg button').forEach(b => b.setAttribute('aria-pressed', +b.dataset.n === G.count ? 'true' : 'false'));
-  const names = id => S.set.names[id] || (sc.tracks.find(t => t.id === id) || {}).name;
+  const names = id => dn(S.set.names[id] || (sc.tracks.find(t => t.id === id) || {}).name);
   [0,1].slice(0, G.count).forEach(i => {
     const d = document.createElement('div'); d.className = 'singer'; d.dataset.i = i;
     const ear = i===0 ? 'höger öra' : 'vänster öra';
@@ -1082,7 +1085,7 @@ function renderDuo(){
   hintNow();
 }
 function hintNow(){
-  const sc = S.score, names = id => S.set.names[id] || (sc.tracks.find(t => t.id === id) || {}).name;
+  const sc = S.score, names = id => dn(S.set.names[id] || (sc.tracks.find(t => t.id === id) || {}).name);
   const on = sc.tracks.filter(t => S.set.play[t.id]).map(t => names(t.id));
   let h = on.length ? 'Hörs: ' + on.join(', ') + (G.bg ? ', övriga svagt.' : '.') : (G.bg ? 'Alla stämmor svagt.' : 'Inget valt att spela. Tryck på en stämma under Spelas.');
   if (splitOn()) h += ` ${G.names[0]} i höger öra, ${G.names[1]} i vänster.`;
@@ -1094,12 +1097,12 @@ function renderTracks(){
     const r = roleOf(t.id);
     const row = document.createElement('div'); row.className = 'trk';
     row.innerHTML = `<div style="display:flex;gap:8px;align-items:center;min-width:0">
-        <input type="text" id="tn_${t.id}" value="${esc(S.set.names[t.id] || t.name)}" aria-label="Stämnamn">
+        <input type="text" id="tn_${t.id}" value="${esc(dn(S.set.names[t.id] || t.name))}" aria-label="Stämnamn">
         ${act().map((id,k)=> id===t.id ? `<span class="tag" style="background:var(${k? '--singer-b':'--singer-a'})">${esc(G.names[k])}</span>` : '').join('')}
         <span class="meta">${noteName(t.lo)}–${noteName(t.hi)}${S.score.srcs.length>1 ? ' · '+esc(S.score.srcs[t.src].name) : ''}</span></div>
       <button class="btn ${S.set.mute[t.id] ? 'on' : ''}" aria-pressed="${!!S.set.mute[t.id]}">${S.set.mute[t.id] ? 'Tyst' : 'Ljud'}</button>
       <input type="range" id="tv_${t.id}" min="0" max="1" step="0.05" value="${S.set.vol[t.id] ?? 0.8}" aria-label="Volym ${esc(t.name)}">`;
-    row.querySelector('input[type=text]').onchange = e => { S.set.names[t.id] = e.target.value.trim() || t.name; saveSong(); renderDuo(); };
+    row.querySelector('input[type=text]').onchange = e => { S.set.names[t.id] = e.target.value.trim() || t.name; saveSong(); renderDuo(); renderSummary(); };
     row.querySelector('button').onclick = () => { S.set.mute[t.id] = !S.set.mute[t.id]; saveSong(); renderTracks(); applyMix(); };
     row.querySelector('input[type=range]').oninput = e => { S.set.vol[t.id] = +e.target.value; saveSong(); applyMix(); };
     box.appendChild(row);
@@ -1318,6 +1321,8 @@ $('#loop').onchange = e => { S.set.loop = e.target.checked; saveSong(); if (S.se
   if (!S.playing){ S.position = range()[0]; showPosition(true); } else restartIfPlaying();
 });
 $('#countIn').onchange = e => { G.countIn = e.target.checked; saveGlobal(); };
+$('#longNames').checked = !!G.longNames;
+$('#longNames').onchange = e => { G.longNames = e.target.checked; saveGlobal(); renderDuo(); renderTracks(); renderSummary(); drawLane._last = null; drawLane(S.position); };
 $('#lift').checked = !!G.lift;
 $('#lift').onchange = e => { G.lift = e.target.checked; saveGlobal(); toast(G.lift ? 'Toner under G3 spelas en oktav upp.' : 'Alla toner i rätt oktav.'); };
 document.querySelectorAll('[data-view]').forEach(b => b.onclick = () => setView(b.dataset.view));
@@ -1366,7 +1371,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSheets(
 
 function renderSummary(){
   const sc = S.score; if (!sc) return;
-  const nm = id => S.set.names[id] || (sc.tracks.find(t => t.id === id) || {}).name || 'ingen stämma';
+  const nm = id => dn(S.set.names[id] || (sc.tracks.find(t => t.id === id) || {}).name) || 'ingen stämma';
   $('#whoSum').innerHTML = act().map((id, i) => `<span class="p"><i class="dot" style="background:var(${i ? '--singer-b' : '--singer-a'})"></i>${esc(G.names[i])} · ${esc(nm(id))}${(S.set.inst || [])[i] === 'cello' ? ' · cello' : ''}</span>`).join('');
 }
 const _renderDuo = renderDuo;
