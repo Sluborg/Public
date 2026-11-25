@@ -94,7 +94,9 @@ button{cursor:pointer;-webkit-tap-highlight-color:transparent}
 .nav{flex:1;min-width:0;display:flex;align-items:center;justify-content:center;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);box-sizing:border-box}
 .nav .iconbtn{border:0;background:transparent;width:30px;min-height:44px;flex:none}
 .nav .pos{flex:1 1 auto;min-width:0;line-height:1.1}
-.nav .pos b{display:block;font-family:var(--f-mono);font-size:inherit;font-weight:500}
+.nav .pos #barTot{color:var(--muted);font-weight:400}
+.nav .pos #barNo{font-weight:700}
+.nav .pos b{display:block;white-space:nowrap;font-family:var(--f-mono);font-size:inherit;font-weight:500}
 .nav .pos small{display:block;font-family:var(--f-body);font-size:10px;letter-spacing:0;text-transform:none;color:var(--muted);font-weight:400}
 .tp{display:grid;grid-template-columns:1fr 3fr 2fr;gap:var(--qgap);align-items:center}
 .tp .play{width:100%;height:auto;aspect-ratio:1;max-width:60px;min-width:0}
@@ -220,7 +222,7 @@ details.mixer[open] summary::after{content:"–"}
       <button class="iconbtn" id="barBack" aria-label="En takt bakåt">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg>
       </button>
-      <div class="pos" aria-live="off"><b id="barNo">1</b><small>takt av <span id="barTot">1</span></small></div>
+      <div class="pos" aria-live="off"><b><span id="barNo">1</span><span id="barTot"> / 1</span></b><small>takt</small></div>
       <button class="iconbtn" id="barFwd" aria-label="En takt framåt">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg>
       </button>
@@ -343,7 +345,7 @@ details.mixer[open] summary::after{content:"–"}
   </details>
   <button class="btn" id="toStart" hidden>Till början</button>
   <p class="hint" id="sheetTitle" hidden></p>
-  <p class="hint">Norsesundskören · stämövning · lite v50</p>
+  <p class="hint">Norsesundskören · stämövning · lite v52</p>
 </section>
 
 <input id="file" type="file" multiple class="sr" tabindex="-1" aria-hidden="true">
@@ -1131,7 +1133,7 @@ function renderTracks(){
 }
 function renderTransport(){
   const n = S.score.measureStarts.length;
-  $('#barTot').textContent = n;
+  $('#barTot').textContent = ' / ' + n;
   $('#tempoVal').textContent = S.set.bpm; $('#tempo').value = S.set.bpm;
   $('#loop').checked = S.set.loop; $('#countIn').checked = G.countIn;
   $('#loopFrom').max = n; $('#loopTo').max = n;
