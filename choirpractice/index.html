@@ -313,7 +313,7 @@ details.mixer[open] summary::after{content:"–"}
   </details>
   <button class="btn" id="toStart" hidden>Till början</button>
   <p class="hint" id="sheetTitle" hidden></p>
-  <p class="hint">Norsesundskören · stämövning · lite v34</p>
+  <p class="hint">Norsesundskören · stämövning · lite v35</p>
 </section>
 
 <input id="file" type="file" multiple class="sr" tabindex="-1" aria-hidden="true">
@@ -597,13 +597,29 @@ function defaultSongSettings(score){
 
 /* ---------- audio ---------- */
 let ac = null, master = null, nodes = {}, live = new Set();
+/* iOS/iPadOS: Web Audio is muted by the ringer switch and needs a silent buffer plus a looping silent <audio> in the same tap */
+let _iosKick = null;
+function unlockIOS(){
+  try{ if (navigator.audioSession) navigator.audioSession.type = 'playback'; }catch(e){}
+  try{
+    if (!_iosKick){
+      const n = 4000, buf = new ArrayBuffer(44 + n), v = new DataView(buf), w = (o, t) => { for (let i = 0; i < t.length; i++) v.setUint8(o + i, t.charCodeAt(i)); };
+      w(0,'RIFF'); v.setUint32(4, 36 + n, true); w(8,'WAVE'); w(12,'fmt '); v.setUint32(16,16,true); v.setUint16(20,1,true); v.setUint16(22,1,true); v.setUint32(24,8000,true); v.setUint32(28,8000,true); v.setUint16(32,1,true); v.setUint16(34,8,true); w(36,'data'); v.setUint32(40,n,true);
+      for (let i = 0; i < n; i++) v.setUint8(44 + i, 128);
+      const a = document.createElement('audio'); a.src = URL.createObjectURL(new Blob([buf], { type: 'audio/wav' })); a.loop = true; a.setAttribute('playsinline', ''); a.volume = 0.01; _iosKick = a;
+    }
+    const pr = _iosKick.play(); if (pr && pr.catch) pr.catch(()=>{});
+  }catch(e){}
+  try{ const b = ac.createBuffer(1, 1, 22050), src = ac.createBufferSource(); src.buffer = b; src.connect(ac.destination); src.start(0); }catch(e){}
+}
 function ensureAudio(){
   if (!ac){
     ac = new (window.AudioContext || window.webkitAudioContext)();
     const comp = ac.createDynamicsCompressor(); comp.threshold.value = -6; comp.knee.value = 6; comp.ratio.value = 12; comp.attack.value = 0.003; comp.release.value = 0.12;
     master = ac.createGain(); master.gain.value = 1.3; master.connect(comp); comp.connect(ac.destination);
   }
-  if (ac.state === 'suspended') ac.resume();
+  if (ac.state !== 'running') { try{ const r = ac.resume(); if (r && r.catch) r.catch(()=>{}); }catch(e){} }
+  unlockIOS();
   if (S.score) S.score.tracks.forEach(t=>{
     if (nodes[t.id]) return;
     const g = ac.createGain(); const p = ac.createStereoPanner ? ac.createStereoPanner() : null;
