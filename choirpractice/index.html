@@ -324,15 +324,15 @@ details.mixer[open] summary::after{content:"–"}
   <div class="trow"><span>Noterna visas som</span><div class="seg" role="group" aria-label="Notlayout" id="layoutSeg"><button data-layout="row">Rad</button><button data-layout="page">Sida</button></div></div>
   <div class="trow"><span>Notrader</span><div class="seg" role="group" aria-label="Stämmor i noterna" id="staffSeg"><button data-staff="mine">Mina</button><button data-staff="all">Alla</button></div></div>
   <div class="trow" id="srcRow" hidden><span>Notfil<small>Byter mellan inlästa filer, till exempel en fil per stämma.</small></span><div class="seg" role="group" aria-label="Notfil" id="srcSeg" hidden></div></div>
-  <details class="mixer" open style="margin-top:10px"><summary class="hint" style="cursor:pointer">Inget ljud på iPhone eller iPad?</summary>
+  <details class="mixer" style="margin-top:10px"><summary class="hint" style="cursor:pointer">Inget ljud på iPhone eller iPad?</summary>
     <p class="hint">Kolla först att ringsignalsknappen på sidan inte står på tyst och att mediavolymen är uppe. Tryck sedan på Testa ljud. Hörs inget, slå på spelläget nedan och testa igen.</p>
-    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><button class="btn" id="sndTest">Testa ljud</button>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding-top:10px"><button class="btn" id="sndTest">Testa ljud</button>
     <label class="hint" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="mediaOut"> Spela via mediaspelare</label></div>
     <p class="hint" id="sndInfo"></p>
   </details>
   <button class="btn" id="toStart" hidden>Till början</button>
   <p class="hint" id="sheetTitle" hidden></p>
-  <p class="hint">Norsesundskören · stämövning · lite v43</p>
+  <p class="hint">Norsesundskören · stämövning · lite v44</p>
 </section>
 
 <input id="file" type="file" multiple class="sr" tabindex="-1" aria-hidden="true">
@@ -1313,7 +1313,7 @@ $('#sndTest').onclick = () => {
     const o = ac.createOscillator(), g = ac.createGain(), t = ac.currentTime + 0.05;
     o.frequency.value = 440; g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.4, t + 0.03); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.6);
     o.connect(g); g.connect(master); o.start(t); o.stop(t + 0.7);
-    setTimeout(() => { info.textContent = 'Ljudmotor: ' + ac.state + '. Läge: ' + (G.mediaOut ? 'mediaspelare' : 'standard') + '. Tid: ' + ac.currentTime.toFixed(2) + ' s.'; }, 400);
+    setTimeout(() => { info.textContent = ac.state === 'running' ? 'Ljudmotorn är igång. Hörde du en ton? Ja: allt fungerar, inget mer att göra. Nej: kolla att ringsignalsknappen inte står på tyst och att mediavolymen är uppe, slå på Spela via mediaspelare och tryck Testa ljud igen.' : 'Ljudmotorn startade inte. Tryck Testa ljud igen.'; }, 400);
   }catch(err){ info.textContent = 'Fel: ' + (err.message || err); }
 };
 $('#toStart').onclick = () => { const was = S.playing; if (was) pause(); S.position = range()[0]; showPosition(true); if (was) play(S.position); };
