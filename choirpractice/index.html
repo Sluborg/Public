@@ -313,7 +313,7 @@ details.mixer[open] summary::after{content:"–"}
   </details>
   <button class="btn" id="toStart" hidden>Till början</button>
   <p class="hint" id="sheetTitle" hidden></p>
-  <p class="hint">Norsesundskören · stämövning · lite v35</p>
+  <p class="hint">Norsesundskören · stämövning · lite v36</p>
 </section>
 
 <input id="file" type="file" multiple class="sr" tabindex="-1" aria-hidden="true">
@@ -551,6 +551,12 @@ function buildScore(song){
     const words = voiceWords(s.file).length ? voiceWords(s.file) : voiceWords(s.name);
     if (words.length && words.length === sc.tracks.length){ words.sort((a,b)=>rankOf(a)-rankOf(b)); sc.tracks.forEach((t,j)=>t.name = words[j]); }
     if (s.names) sc.tracks.forEach(t => { if (s.names[t.id]) t.name = s.names[t.id]; });
+    if (s.fill) Object.entries(s.fill).forEach(([u, l]) => { // divisi voice that only has the split bars: add the shared bars from the other voice
+      const U = sc.tracks.find(t => t.id === u), L = sc.tracks.find(t => t.id === l); if (!U || !L) return;
+      const iv = U.notes.map(n => [n.start, n.start + n.dur]);
+      U.notes = [...U.notes, ...L.notes.filter(n => !iv.some(([x, y]) => n.start >= x - 1e-3 && n.start < y - 1e-3)).map(n => ({ ...n }))].sort((x, y) => x.start - y.start);
+      U.lo = Math.min(...U.notes.map(n => n.midi)); U.hi = Math.max(...U.notes.map(n => n.midi));
+    });
     sc.tracks.forEach(t => { t.src = i; t.id = 's'+i+t.id; t.prim = words.includes(t.name); t.voiceName = !!RANK.hasOwnProperty(t.name.split(' ')[0]); });
     return sc;
   });
