@@ -165,8 +165,9 @@ details.mixer[open] summary::after{content:"–"}
   <header class="top">
     <button class="songbtn" id="libBtn" aria-expanded="false" aria-controls="lib"><span class="st"><small>Sång</small><span id="curTitle">…</span></span>
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg></button>
-    <button class="iconbtn" data-sheet="settings" aria-label="Inställningar">
+    <button class="iconbtn" data-sheet="mixSheet" aria-label="Volym och stämmor">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h10M18 6h2M4 12h2M10 12h10M4 18h8M16 18h4"/><circle cx="16" cy="6" r="2"/><circle cx="8" cy="12" r="2"/><circle cx="14" cy="18" r="2"/></svg></button>
+    <button class="iconbtn" data-sheet="settings" aria-label="Inställningar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
   </header>
   <button class="who" data-sheet="voices" aria-label="Ändra vem som övar och stämma"><span id="whoSum" style="display:contents"></span><span class="go">Ändra</span></button>
   <div class="hears"><p class="eyebrow">Hörs</p><div class="chips" id="playChips"></div></div>
@@ -271,12 +272,6 @@ details.mixer[open] summary::after{content:"–"}
   <p class="hint" id="lyrWho"></p>
   <textarea id="songText" rows="10" placeholder="Klistra in eller skriv sångtexten här."></textarea>
   <p class="hint">Det du skriver här sparas på den här telefonen. Fel stavelse under stämlinjen? Tryck på den för att rätta.</p>
-  <details style="margin-top:10px"><summary class="hint" style="cursor:pointer">Inget ljud på iPhone eller iPad?</summary>
-    <p class="hint">Kolla först att ringsignalsknappen på sidan inte står på tyst och att mediavolymen är uppe. Tryck sedan på Testa ljud. Hörs inget, slå på spelläget nedan och testa igen.</p>
-    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><button class="btn" id="sndTest">Testa ljud</button>
-    <label class="hint" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="mediaOut"> Spela via mediaspelare</label></div>
-    <p class="hint" id="sndInfo"></p>
-  </details>
   <details style="margin-top:10px"><summary class="hint" style="cursor:pointer">Flytta mina texter till en annan telefon eller app</summary>
     <div class="row" style="margin-top:8px"><button class="btn" type="button" id="xOut">Gör kod av mina texter</button><button class="btn" type="button" id="xIn">Importera koden i rutan</button></div>
     <textarea id="xfer" rows="4" placeholder="Koden visas här. Klistra in en kod här för att importera." style="width:100%;margin-top:8px;font-family:var(--f-mono);font-size:12px"></textarea>
@@ -304,6 +299,12 @@ details.mixer[open] summary::after{content:"–"}
   <p class="hint">Gäller bara vers <span id="leVerse">1</span> och stämman du övar. Sparas på den här telefonen.</p>
 </section>
 
+<section class="sheetx" id="mixSheet" hidden aria-label="Volym och stämmor">
+  <div class="sh"><h2>Volym och stämmor</h2><button class="iconbtn" data-close aria-label="Stäng">✕</button></div>
+  <div class="tracks" id="tracks"></div>
+  <p class="hint">Namnen gissas utifrån tonhöjd. Byt namn om gissningen blir fel, det sparas per sång.</p>
+</section>
+
 <section class="sheetx" id="settings" hidden aria-label="Inställningar">
   <div class="sh"><h2>Inställningar</h2><button class="iconbtn" data-close aria-label="Stäng">✕</button></div>
   <label class="trow"><span>Inräkning<small>En takt med klick och nedräkning före start.</small></span><input class="sw" type="checkbox" id="countIn"></label>
@@ -312,14 +313,15 @@ details.mixer[open] summary::after{content:"–"}
   <div class="trow"><span>Noterna visas som</span><div class="seg" role="group" aria-label="Notlayout" id="layoutSeg"><button data-layout="row">Rad</button><button data-layout="page">Sida</button></div></div>
   <div class="trow"><span>Notrader</span><div class="seg" role="group" aria-label="Stämmor i noterna" id="staffSeg"><button data-staff="mine">Mina</button><button data-staff="all">Alla</button></div></div>
   <div class="trow" id="srcRow"><span>Notfil</span><div class="seg" role="group" aria-label="Notfil" id="srcSeg" hidden></div></div>
-  <details class="mixer" id="mixer">
-    <summary>Volym och stämnamn</summary>
-    <div class="tracks" id="tracks"></div>
-    <p class="hint">Namnen gissas utifrån tonhöjd. Byt namn om gissningen blir fel, det sparas per sång.</p>
+  <details class="mixer" open style="margin-top:10px"><summary class="hint" style="cursor:pointer">Inget ljud på iPhone eller iPad?</summary>
+    <p class="hint">Kolla först att ringsignalsknappen på sidan inte står på tyst och att mediavolymen är uppe. Tryck sedan på Testa ljud. Hörs inget, slå på spelläget nedan och testa igen.</p>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><button class="btn" id="sndTest">Testa ljud</button>
+    <label class="hint" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="mediaOut"> Spela via mediaspelare</label></div>
+    <p class="hint" id="sndInfo"></p>
   </details>
   <button class="btn" id="toStart" hidden>Till början</button>
   <p class="hint" id="sheetTitle" hidden></p>
-  <p class="hint">Norsesundskören · stämövning · lite v40</p>
+  <p class="hint">Norsesundskören · stämövning · lite v41</p>
 </section>
 
 <input id="file" type="file" multiple class="sr" tabindex="-1" aria-hidden="true">
