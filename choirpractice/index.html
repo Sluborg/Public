@@ -115,6 +115,10 @@ button{cursor:pointer;-webkit-tap-highlight-color:transparent}
 .btn.primary{background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}
 .btn.danger{color:var(--danger)}
 #loopChip:not(.on){color:var(--muted)}
+#loopChip.on{background:var(--surface);border-color:var(--accent);color:var(--paper-ink,inherit);min-height:44px;padding-top:3px;padding-bottom:3px}
+#loopChip.on svg{color:var(--accent)}
+#loopTxt b{display:block;font-family:var(--f-mono);font-size:16px;font-weight:700;line-height:1.1;color:var(--accent)}
+#loopTxt small{display:block;font-size:10px;color:var(--muted);line-height:1.1;font-weight:400}
 #loopChip:not(.on) svg{opacity:.55}
 .btn.on{background:var(--surface-2);border-color:var(--accent);color:var(--accent)}
 .btn svg{width:18px;height:18px}
@@ -347,7 +351,7 @@ details.mixer[open] summary::after{content:"–"}
   </details>
   <button class="btn" id="toStart" hidden>Till början</button>
   <p class="hint" id="sheetTitle" hidden></p>
-  <p class="hint">Norsesundskören · stämövning · lite v56</p>
+  <p class="hint">Norsesundskören · stämövning · lite v57</p>
 </section>
 
 <input id="file" type="file" multiple class="sr" tabindex="-1" aria-hidden="true">
@@ -1404,7 +1408,7 @@ renderDuo = function(){ _renderDuo(); renderSummary(); if (S.song && S.score) re
 
 function syncLoopUI(){
   const on = !!S.set.loop;
-  $('#loopTxt').textContent = on ? `Slinga ${S.set.loopFrom}–${S.set.loopTo}` : 'Slinga';
+  $('#loopTxt').innerHTML = on ? `<b>${S.set.loopFrom}–${S.set.loopTo}</b><small>slinga</small>` : 'Slinga';
   $('#loopChip').classList.toggle('on', on);
   $('#loop').checked = on; $('#loopFrom').value = S.set.loopFrom; $('#loopTo').value = S.set.loopTo;
 }
