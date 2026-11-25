@@ -313,7 +313,7 @@ details.mixer[open] summary::after{content:"–"}
   </details>
   <button class="btn" id="toStart" hidden>Till början</button>
   <p class="hint" id="sheetTitle" hidden></p>
-  <p class="hint">Norsesundskören · stämövning · lite v37</p>
+  <p class="hint">Norsesundskören · stämövning · lite v38</p>
 </section>
 
 <input id="file" type="file" multiple class="sr" tabindex="-1" aria-hidden="true">
@@ -1044,7 +1044,7 @@ function renderDuo(){
     sc.tracks.forEach(t => {
       const b = document.createElement('button'); b.className = 'chip'; b.textContent = names(t.id);
       b.setAttribute('aria-pressed', S.set.singers[i] === t.id ? 'true' : 'false');
-      b.onclick = () => { S.set.singers[i] = t.id; resetPlay(); saveSong(); renderDuo(); renderTracks(); applyMix(); drawLane._last = null; drawLane(S.position); if (G.staves === 'mine') rerenderScore(); };
+      b.onclick = () => { S.set.singers[i] = t.id; S._whoDirty = true; renderDuo(); }; // the heavy work waits until the sheet closes
       chips.appendChild(b);
     });
     d.querySelector('input').onchange = e => { G.names[i] = e.target.value.trim() || ('Övare ' + (i+1)); saveGlobal(); renderTracks(); drawLane._last = null; drawLane(S.position); };
@@ -1596,7 +1596,8 @@ const _rlu = renderLyricsUI;
 renderLyricsUI = function(){ _rlu(); $('#leStart').hidden = !!lyricsNow(); };
 $('#leStart').onclick = () => { const id = act().find(Boolean); if (!id) return; (S.set.lyr ||= {})[id] = [[]]; saveSong(); renderLyricsUI(); closeSheets(); drawLane(S.position); toast('Tryck på raden under stämlinjen för att skriva text på en not.'); };
 const _closeSheets = closeSheets;
-closeSheets = function(){ _closeSheets(); if (drawLane._sel != null){ drawLane._sel = null; if (S.score) drawLane(S.position); } };
+closeSheets = function(){ _closeSheets(); if (drawLane._sel != null){ drawLane._sel = null; if (S.score) drawLane(S.position); }
+  if (S._whoDirty){ S._whoDirty = false; setTimeout(() => { resetPlay(); saveSong(); renderTracks(); applyMix(); drawLane._last = null; if (S.score) drawLane(S.position); if (G.staves === 'mine') rerenderScore(); }, 30); } };
 $('#backdrop').onclick = () => closeSheets();
 
 function initCaps(){
