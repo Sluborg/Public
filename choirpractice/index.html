@@ -271,6 +271,12 @@ details.mixer[open] summary::after{content:"–"}
   <p class="hint" id="lyrWho"></p>
   <textarea id="songText" rows="10" placeholder="Klistra in eller skriv sångtexten här."></textarea>
   <p class="hint">Det du skriver här sparas på den här telefonen. Fel stavelse under stämlinjen? Tryck på den för att rätta.</p>
+  <details style="margin-top:10px"><summary class="hint" style="cursor:pointer">Inget ljud på iPhone eller iPad?</summary>
+    <p class="hint">Kolla först att ringsignalsknappen på sidan inte står på tyst och att mediavolymen är uppe. Tryck sedan på Testa ljud. Hörs inget, slå på spelläget nedan och testa igen.</p>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><button class="btn" id="sndTest">Testa ljud</button>
+    <label class="hint" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="mediaOut"> Spela via mediaspelare</label></div>
+    <p class="hint" id="sndInfo"></p>
+  </details>
   <details style="margin-top:10px"><summary class="hint" style="cursor:pointer">Flytta mina texter till en annan telefon eller app</summary>
     <div class="row" style="margin-top:8px"><button class="btn" type="button" id="xOut">Gör kod av mina texter</button><button class="btn" type="button" id="xIn">Importera koden i rutan</button></div>
     <textarea id="xfer" rows="4" placeholder="Koden visas här. Klistra in en kod här för att importera." style="width:100%;margin-top:8px;font-family:var(--f-mono);font-size:12px"></textarea>
@@ -313,7 +319,7 @@ details.mixer[open] summary::after{content:"–"}
   </details>
   <button class="btn" id="toStart" hidden>Till början</button>
   <p class="hint" id="sheetTitle" hidden></p>
-  <p class="hint">Norsesundskören · stämövning · lite v39</p>
+  <p class="hint">Norsesundskören · stämövning · lite v40</p>
 </section>
 
 <input id="file" type="file" multiple class="sr" tabindex="-1" aria-hidden="true">
@@ -609,7 +615,7 @@ function defaultSongSettings(score){
 }
 
 /* ---------- audio ---------- */
-let ac = null, master = null, nodes = {}, live = new Set();
+let ac = null, master = null, comp = null, mdest = null, mediaEl = null, nodes = {}, live = new Set();
 /* iOS/iPadOS: Web Audio is muted by the ringer switch and needs a silent buffer plus a looping silent <audio> in the same tap */
 let _iosKick = null;
 function unlockIOS(){
@@ -625,14 +631,26 @@ function unlockIOS(){
   }catch(e){}
   try{ const b = ac.createBuffer(1, 1, 22050), src = ac.createBufferSource(); src.buffer = b; src.connect(ac.destination); src.start(0); }catch(e){}
 }
+/* optional route for iPhone/iPad: Web Audio -> MediaStream -> <audio>, which follows the media volume and ignores the silent switch */
+function routeOut(){
+  if (!ac || !comp) return;
+  try{ comp.disconnect(); }catch(e){}
+  if (G.mediaOut && ac.createMediaStreamDestination){
+    if (!mdest) mdest = ac.createMediaStreamDestination();
+    comp.connect(mdest);
+    if (!mediaEl){ mediaEl = document.createElement('audio'); mediaEl.setAttribute('playsinline', ''); mediaEl.srcObject = mdest.stream; }
+    try{ const pr = mediaEl.play(); if (pr && pr.catch) pr.catch(()=>{}); }catch(e){}
+  } else comp.connect(ac.destination);
+}
 function ensureAudio(){
   if (!ac){
     ac = new (window.AudioContext || window.webkitAudioContext)();
-    const comp = ac.createDynamicsCompressor(); comp.threshold.value = -6; comp.knee.value = 6; comp.ratio.value = 12; comp.attack.value = 0.003; comp.release.value = 0.12;
-    master = ac.createGain(); master.gain.value = 1.3; master.connect(comp); comp.connect(ac.destination);
+    comp = ac.createDynamicsCompressor(); comp.threshold.value = -6; comp.knee.value = 6; comp.ratio.value = 12; comp.attack.value = 0.003; comp.release.value = 0.12;
+    master = ac.createGain(); master.gain.value = 1.3; master.connect(comp); routeOut();
   }
   if (ac.state !== 'running') { try{ const r = ac.resume(); if (r && r.catch) r.catch(()=>{}); }catch(e){} }
   unlockIOS();
+  if (G.mediaOut && mediaEl){ try{ const pr = mediaEl.play(); if (pr && pr.catch) pr.catch(()=>{}); }catch(e){} }
   if (S.score) S.score.tracks.forEach(t=>{
     if (nodes[t.id]) return;
     const g = ac.createGain(); const p = ac.createStereoPanner ? ac.createStereoPanner() : null;
@@ -1271,6 +1289,18 @@ $('#bg').onchange = e => { G.bg = e.target.checked; saveGlobal(); renderDuo(); a
 $('#split').onchange = e => { G.split = e.target.checked; saveGlobal(); renderDuo(); applyMix(); };
 $('#giveTone').onclick = giveTone;
 $('#playBtn').onclick = () => S.playing ? pause() : play();
+$('#mediaOut').checked = !!G.mediaOut;
+$('#mediaOut').onchange = e => { G.mediaOut = e.target.checked; saveGlobal(); if (ac){ routeOut(); } };
+$('#sndTest').onclick = () => {
+  const info = $('#sndInfo');
+  try{
+    ensureAudio();
+    const o = ac.createOscillator(), g = ac.createGain(), t = ac.currentTime + 0.05;
+    o.frequency.value = 440; g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.4, t + 0.03); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.6);
+    o.connect(g); g.connect(master); o.start(t); o.stop(t + 0.7);
+    setTimeout(() => { info.textContent = 'Ljudmotor: ' + ac.state + '. Läge: ' + (G.mediaOut ? 'mediaspelare' : 'standard') + '. Tid: ' + ac.currentTime.toFixed(2) + ' s.'; }, 400);
+  }catch(err){ info.textContent = 'Fel: ' + (err.message || err); }
+};
 $('#toStart').onclick = () => { const was = S.playing; if (was) pause(); S.position = range()[0]; showPosition(true); if (was) play(S.position); };
 $('#barBack').onclick = () => seekBar(-1);
 $('#barFwd').onclick = () => seekBar(1);
