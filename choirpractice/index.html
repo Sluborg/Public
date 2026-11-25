@@ -306,23 +306,13 @@ details.mixer[open] summary::after{content:"–"}
 </section>
 
 <section class="sheetx" id="settings" hidden aria-label="Inställningar">
-  <div class="sh"><h2>Inställningar</h2><span style="display:flex;gap:6px"><button class="iconbtn" id="helpBtn" aria-label="Förklaringar" aria-expanded="false" style="font-weight:700">?</button><button class="iconbtn" data-close aria-label="Stäng">✕</button></span></div>
-  <div id="helpBox" hidden style="padding:4px 14px 10px;font-size:13.5px;line-height:1.45;color:var(--muted)">
-    <p><b>Långa stämnamn</b>: visar Sopran 1 i stället för S1.</p>
-    <p><b>Inräkning</b>: en takt klick före start.</p>
-    <p><b>Klang</b>: ljudet för stämmorna, piano eller orgel.</p>
-    <p><b>Låga toner en oktav upp</b>: gör basen lättare att höra i telefonens högtalare.</p>
-    <p><b>Noterna visas som</b>: Rad scrollar i sidled, Sida visar hela sidan.</p>
-    <p><b>Notrader</b>: Mina visar bara de stämmor som övar, Alla visar alla.</p>
-    <p><b>Notfil</b>: syns när flera filer är inlästa, byter vilken fil noterna visas från.</p>
-    <p><b>Ljud</b>: hjälp om det är tyst på iPhone eller iPad.</p>
-  </div>
+  <div class="sh"><h2>Inställningar</h2><button class="iconbtn" data-close aria-label="Stäng">✕</button></div>
   <label class="trow"><span>Långa stämnamn<small>Sopran 1 i stället för S1, Alt i stället för A.</small></span><input class="sw" type="checkbox" id="longNames"></label>
   <label class="trow"><span>Inräkning<small>En takt med klick och nedräkning före start.</small></span><input class="sw" type="checkbox" id="countIn"></label>
-  <div class="trow"><span>Klang</span><div class="seg" role="group" aria-label="Klang" id="timbreSeg"><button data-timbre="piano">Piano</button><button data-timbre="organ">Orgel</button></div></div>
+  <div class="trow"><span>Klang<small>Ljudet för stämmorna.</small></span><div class="seg" role="group" aria-label="Klang" id="timbreSeg"><button data-timbre="piano">Piano</button><button data-timbre="organ">Orgel</button></div></div>
   <label class="trow"><span>Låga toner en oktav upp<small>Om basen hörs dåligt i telefonens högtalare.</small></span><input class="sw" type="checkbox" id="lift"></label>
-  <div class="trow"><span>Noterna visas som</span><div class="seg" role="group" aria-label="Notlayout" id="layoutSeg"><button data-layout="row">Rad</button><button data-layout="page">Sida</button></div></div>
-  <div class="trow"><span>Notrader</span><div class="seg" role="group" aria-label="Stämmor i noterna" id="staffSeg"><button data-staff="mine">Mina</button><button data-staff="all">Alla</button></div></div>
+  <div class="trow"><span>Noterna visas som<small>Rad scrollar i sidled, Sida visar hela sidan.</small></span><div class="seg" role="group" aria-label="Notlayout" id="layoutSeg"><button data-layout="row">Rad</button><button data-layout="page">Sida</button></div></div>
+  <div class="trow"><span>Notrader<small>Mina visar bara de som övar, Alla visar alla stämmor.</small></span><div class="seg" role="group" aria-label="Stämmor i noterna" id="staffSeg"><button data-staff="mine">Mina</button><button data-staff="all">Alla</button></div></div>
   <div class="trow" id="srcRow" hidden><span>Notfil<small>Byter mellan inlästa filer, till exempel en fil per stämma.</small></span><div class="seg" role="group" aria-label="Notfil" id="srcSeg" hidden></div></div>
   <details class="mixer" style="margin-top:10px"><summary class="hint" style="cursor:pointer">Inget ljud på iPhone eller iPad?</summary>
     <p class="hint">Kolla först att ringsignalsknappen på sidan inte står på tyst och att mediavolymen är uppe. Tryck sedan på Testa ljud. Hörs inget, slå på spelläget nedan och testa igen.</p>
@@ -332,7 +322,7 @@ details.mixer[open] summary::after{content:"–"}
   </details>
   <button class="btn" id="toStart" hidden>Till början</button>
   <p class="hint" id="sheetTitle" hidden></p>
-  <p class="hint">Norsesundskören · stämövning · lite v44</p>
+  <p class="hint">Norsesundskören · stämövning · lite v45</p>
 </section>
 
 <input id="file" type="file" multiple class="sr" tabindex="-1" aria-hidden="true">
@@ -1331,7 +1321,6 @@ $('#loop').onchange = e => { S.set.loop = e.target.checked; saveSong(); if (S.se
   if (!S.playing){ S.position = range()[0]; showPosition(true); } else restartIfPlaying();
 });
 $('#countIn').onchange = e => { G.countIn = e.target.checked; saveGlobal(); };
-$('#helpBtn').onclick = () => { const h = $('#helpBox'); h.hidden = !h.hidden; $('#helpBtn').setAttribute('aria-expanded', String(!h.hidden)); };
 $('#longNames').checked = !!G.longNames;
 $('#longNames').onchange = e => { G.longNames = e.target.checked; saveGlobal(); renderDuo(); renderTracks(); renderSummary(); drawLane._last = null; drawLane(S.position); };
 $('#lift').checked = !!G.lift;
