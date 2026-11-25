@@ -345,7 +345,7 @@ details.mixer[open] summary::after{content:"–"}
   </details>
   <button class="btn" id="toStart" hidden>Till början</button>
   <p class="hint" id="sheetTitle" hidden></p>
-  <p class="hint">Norsesundskören · stämövning · lite v54</p>
+  <p class="hint">Norsesundskören · stämövning · lite v55</p>
 </section>
 
 <input id="file" type="file" multiple class="sr" tabindex="-1" aria-hidden="true">
@@ -1394,7 +1394,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSheets(
 
 function renderSummary(){
   const sc = S.score; if (!sc) return;
-  const nm = id => dn(S.set.names[id] || (sc.tracks.find(t => t.id === id) || {}).name) || 'ingen stämma';
+  const nm = id => (S.set.names[id] || (sc.tracks.find(t => t.id === id) || {}).name) || 'ingen stämma';
   $('#whoSum').innerHTML = act().map((id, i) => `<span class="p"><i class="dot" style="background:var(${i ? '--singer-b' : '--singer-a'})"></i>${esc(G.names[i])} · ${esc(nm(id))}${(S.set.inst || [])[i] === 'cello' ? ' · cello' : ''}</span>`).join('');
 }
 const _renderDuo = renderDuo;
