@@ -96,11 +96,14 @@ button{cursor:pointer;-webkit-tap-highlight-color:transparent}
 .nav .pos{flex:1 1 auto;min-width:0;line-height:1.1}
 .nav .pos b{display:block;font-family:var(--f-mono);font-size:inherit;font-weight:500}
 .nav .pos small{display:block;font-family:var(--f-body);font-size:10px;letter-spacing:0;text-transform:none;color:var(--muted);font-weight:400}
-.tempoGrp{width:calc((100% - 2 * var(--qgap)) / 3);box-sizing:border-box}
+.tp{display:grid;grid-template-columns:1fr 3fr 2fr;gap:var(--qgap);align-items:center}
+.tp .play{width:100%;height:auto;aspect-ratio:1;max-width:60px;min-width:0}
+.quick{display:grid;grid-template-columns:1fr 1fr 1fr;gap:var(--qgap)}
+.tempoGrp{width:auto;min-width:0;box-sizing:border-box}
 .tempoGrp button{flex:1}.tempoGrp .tv{flex:none}
 @media (max-width:430px){
   .tp{gap:6px}
-  .play{width:50px;height:50px}.play svg{width:24px;height:24px}
+  .play svg{width:24px;height:24px}
   .tempoGrp button{width:30px}.tempoGrp .tv{min-width:36px}
   .quick{gap:6px}.quick,.tp{--qgap:6px}.quick .btn{padding:9px 6px;font-size:14px}
 }
@@ -340,7 +343,7 @@ details.mixer[open] summary::after{content:"–"}
   </details>
   <button class="btn" id="toStart" hidden>Till början</button>
   <p class="hint" id="sheetTitle" hidden></p>
-  <p class="hint">Norsesundskören · stämövning · lite v49</p>
+  <p class="hint">Norsesundskören · stämövning · lite v50</p>
 </section>
 
 <input id="file" type="file" multiple class="sr" tabindex="-1" aria-hidden="true">
